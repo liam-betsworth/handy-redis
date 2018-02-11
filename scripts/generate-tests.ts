@@ -203,7 +203,13 @@ export const generateTests = async () => {
         const longestCommand = _.maxBy(commandSrcs, src => src.length);
         const maxLength = longestCommand ? longestCommand.length : 0;
 
-        const testName = `${ex.example.file} example ${ex.example.index + 1}`;
+        const exampleFile = ex.example.file;
+        const testFilePath = exampleFile.replace("scripts/redis-doc/", "").replace(".md", "");
+
+        // determine how many "../"s will be needed to get to src folder based on example file path
+        const dots = testFilePath.split("/").map(() => "..").join("/");
+
+        const testName = `[${exampleFile}](../../${dots}/${exampleFile}) fooooo example ${ex.example.index + 1}`;
 
         const body = [
             `const overrider = getOverride(${quote(ex.example.file)});`,
@@ -228,7 +234,7 @@ export const generateTests = async () => {
         const isSkipped = [
             "scripts/redis-doc/commands/swapdb.md",
             "scripts/redis-doc/commands/unlink.md",
-        ].indexOf(ex.example.file) > -1;
+        ].indexOf(exampleFile) > -1;
         const runTest = isSkipped ? "test.skip" : "test";
 
         const testSrc = [
@@ -238,14 +244,13 @@ export const generateTests = async () => {
         ]
         .join(EOL);
 
-        return { testSrc, exampleFile: ex.example.file };
+        return { testSrc, exampleFile, testFilePath, dots };
     });
 
-    const grouped = _.groupBy(tests, t => t.exampleFile.replace("scripts/redis-doc/", "").replace(".md", ""));
+    const grouped = _.groupBy(tests, t => t.testFilePath);
 
     return _.mapValues(grouped, (testGroup, file) => {
-        // determine how many "../"s will be needed to get to src folder based on example file path
-        const dots = file.split("/").map(() => "..").join("/");
+        const { dots } = testGroup[0];
         return [
             `import ava from "ava";`,
             `import { zip, padEnd } from "lodash";`,
