@@ -209,7 +209,7 @@ export const generateTests = async () => {
         // determine how many "../"s will be needed to get to src folder based on example file path
         const dots = testFilePath.split("/").map(() => "..").join("/");
 
-        const testName = `[${exampleFile}](../../${dots}/${exampleFile}) fooooo example ${ex.example.index + 1}`;
+        const testName = `[${exampleFile}](../../${dots}/${exampleFile}) example ${ex.example.index + 1}`;
 
         const body = [
             `const overrider = getOverride(${quote(ex.example.file)});`,
