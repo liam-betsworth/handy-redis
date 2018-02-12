@@ -1,11 +1,14 @@
 import { commandDoc, readdirWithPaths } from "./util";
 import { readFileSync } from "fs";
 import * as _ from "lodash";
-import { spawn } from "child_process";
+import { spawn, execSync } from "child_process";
 
 export const getExampleRuns = async () => {
     const examples = getCliExamples();
-    const redisCli = spawn("redis-cli", ["--no-raw"]);
+    const cliLocation = execSync("where redis-cli").toString();
+    const redisCli = cliLocation.indexOf("Could not find") === -1
+        ? spawn("redis-cli", ["--no-raw"]) // redis-cli command available, use it. otherwise use docker
+        : spawn("docker-compose", ["run", "redis", "redis-cli", "-h", "redis", "--no-raw"]);
     redisCli.stdin.setDefaultEncoding("utf-8");
     const redisInteractor = {
         onstdout: (data: string) => console.log(data),
